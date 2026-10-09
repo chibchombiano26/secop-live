@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No .env committed
+        run: |
+          if git ls-files | grep -qx ".env"; then
+            echo ".env is tracked - refusing (secrets risk)"; exit 1;
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install fastapi "mcp>=1.28,<2" requests
+
+      - name: Compile check
+        run: python -m compileall -q api tests
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate docker compose file
+        run: |
+          cp .env.example .env
+          docker compose config --quiet

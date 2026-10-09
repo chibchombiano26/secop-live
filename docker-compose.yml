@@ -1,0 +1,17 @@
+services:
+  api:
+    image: secop-live-api
+    build: .
+    env_file: .env
+    ports:
+      - "8100:8000"
+    restart: unless-stopped
+
+  mcp:
+    image: secop-live-api
+    build: .
+    env_file: .env
+    ports:
+      - "8101:8001"
+    command: ["python", "-m", "api.mcp_server", "--sse"]
+    restart: unless-stopped

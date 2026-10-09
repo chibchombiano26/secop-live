@@ -24,6 +24,13 @@ class TestSoql(unittest.TestCase):
         self.assertIsNone(p["next_offset"])
         self.assertEqual(p["prev_offset"], 2)
 
+    def test_words_any(self):
+        q = socrata._words_any(["nombre_archivo", "descripci_n"],
+                               "suministro alimentos")
+        self.assertIn("upper(nombre_archivo) like '%SUMINISTRO%'", q)
+        self.assertIn("upper(descripci_n) like '%ALIMENTOS%'", q)
+        self.assertIn(" AND ", q)
+
 
 class TestCache(unittest.TestCase):
     def test_hit_and_bypass(self):

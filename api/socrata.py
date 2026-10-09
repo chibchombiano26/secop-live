@@ -42,6 +42,20 @@ def _like(col, v):
     return "upper(%s) like '%%%s%%'" % (col, _esc(v.upper()))
 
 
+def _words_any(cols, q):
+    """Cada palabra debe aparecer en alguna de las columnas (AND de ORs).
+
+    Asi un agente puede preguntar en lenguaje natural ("suministro alimentos
+    colegios") en vez de keywords exactas.
+    """
+    conds = []
+    for w in q.split():
+        w = _esc(w.upper())
+        conds.append("(%s)" % " OR ".join(
+            "upper(%s) like '%%%s%%'" % (c, w) for c in cols))
+    return "(%s)" % " AND ".join(conds) if conds else "1 = 1"
+
+
 def _page(data, limit, offset):
     return {"limit": limit, "offset": offset,
             "next_offset": offset + limit if len(data) == limit else None,
@@ -68,9 +82,8 @@ def search_procesos(estado=None, entidad=None, modalidad=None,
     if hasta:
         w.append("fecha_de_publicacion_del <= '%s'" % _esc(hasta))
     if q:
-        qe = _esc(q.upper())
-        w.append("(upper(nombre_del_procedimiento) like '%%%s%%'"
-                 " OR upper(descripci_n_del_procedimiento) like '%%%s%%')" % (qe, qe))
+        w.append(_words_any(["nombre_del_procedimiento",
+                             "descripci_n_del_procedimiento"], q))
     where = ("WHERE " + " AND ".join(w)) if w else ""
     soql = ("SELECT *, :id %s ORDER BY fecha_de_publicacion_del DESC, :id"
             " LIMIT %d OFFSET %d" % (where, limit, offset))
@@ -87,9 +100,7 @@ def detail_proceso(id_del_proceso):
 def search_documentos(q, entidad=None, limit=20, offset=0):
     limit = max(1, min(int(limit or 20), MAX_LIMIT))
     offset = max(0, int(offset or 0))
-    qe = _esc(q.upper())
-    w = ["(upper(nombre_archivo) like '%%%s%%'"
-         " OR upper(descripci_n) like '%%%s%%')" % (qe, qe)]
+    w = [_words_any(["nombre_archivo", "descripci_n"], q)]
     if entidad:
         w.append(_like("entidad", entidad))
     soql = ("SELECT *, :id WHERE %s ORDER BY fecha_carga DESC, :id"

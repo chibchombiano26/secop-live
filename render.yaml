@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: secop-live
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: API_KEYS
+        sync: false
+      - key: SOCRATA_APP_TOKEN
+        sync: false
+      - key: CACHE_TTL
+        value: 600

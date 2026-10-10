@@ -14,6 +14,13 @@ app = FastAPI(title="SECOP Live Proxy",
 app.add_middleware(ApiKeyMiddleware)
 add_scalar_reference(app, route="/scalar")
 
+try:
+    from .mcp_server import mcp as _mcp
+    app.mount("/mcp", _mcp.sse_app())
+    MCP_MOUNTED = True
+except Exception:
+    MCP_MOUNTED = False
+
 
 def _with_pages(request: Request, res: dict) -> dict:
     """Absolute next/prev URLs (None when exhausted)."""

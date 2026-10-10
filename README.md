@@ -28,11 +28,19 @@ curl "localhost:8100/licitaciones?estado=Publicado&limit=2" -H "X-API-Key: KEY"
 
 ## MCP (agents)
 
-- Remote: `http://host:8101/sse` (tools below, API key enforced)
+- Remote: `http://host:8001/sse`, or same-port `http://host:8000/mcp/sse`
+  (single-port mount, used by the free Render deploy below)
 - Local STDIO (Claude Desktop/Cursor):
   `docker compose run --rm api python -m api.mcp_server`
 
 Tools: `buscar_licitaciones`, `detalle_licitacion`, `buscar_documentos`.
+
+## Free hosting (Render)
+
+`render.yaml` included (no credit card). Dashboard → New → Blueprint →
+pick this repo → set `API_KEYS` (+ optional `SOCRATA_APP_TOKEN`) → Deploy.
+Free limits: sleeps after 15 min idle (~1 min wake), 750h/mo, 5 GB bandwidth.
+Good for demos; agents wanting instant answers need a paid always-on instance.
 
 ## Cache & auth
 
